@@ -1,0 +1,39 @@
+<canvas></canvas>
+<script src="output.js"></script>
+<script>
+const WIDTH = 800;
+const HEIGHT = 800;
+
+const canvas = document.querySelector('canvas');
+canvas.setAttribute('height', HEIGHT);
+canvas.setAttribute('width', WIDTH);
+const context = canvas.getContext('2d');
+
+
+const ZOOM = 0.005
+const ITER =  1000;
+
+context.fillRect(0, 0, WIDTH, HEIGHT);
+const imageData = context.getImageData(0, 0, WIDTH, HEIGHT);
+
+const nativeRender = Module.cwrap('render', 'void', ['number', 'number', 'number', 'number']);
+const size = imageData.data.byteLenght;
+const pointer = Module._malloc(size);
+const heap = new Uint8Array(Module.HEAPU8.buffer, pointer, size);
+
+function render(a) {
+  nativeRender(WIDTH, HEIGHT, a, pointer);
+  const result = new Uint8Array(heap.buffer, heap.byteOffset, imageData.data.length);
+  imageData.data.set(result);
+  context.putImageData(imageData, 0, 0);
+}
+
+(function loop(a = 0) {
+  console.time('render');
+  render(a);
+  console.timeEnd('render');
+  setTimeout(loop.bind(null, a + 0.1), 1);
+})();
+
+
+</script>
