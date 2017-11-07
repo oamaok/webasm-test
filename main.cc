@@ -51,6 +51,10 @@ struct complex {
   }
 };
 
+struct complex re(double r) {
+  return { r, 0.0 };
+}
+
 struct result {
   int iteration, root;
 };
@@ -86,9 +90,7 @@ void hslToRgb(float h, float s, float l, uint8_t* rgb) {
     rgb[2] = b * 255.0f;
 }
 
-struct result calculate(double real, double imag, double a) {
-  struct complex z = { real, imag };
-
+struct result calculate(struct complex z, double a) {
   struct complex roots[] = {
     { -1.154082, -0.613723 },
     { -1.154082,  0.613723 },
@@ -98,23 +100,23 @@ struct result calculate(double real, double imag, double a) {
     {  0.736832,  0.610339 },
   };
 
-  for (int i = 0; i < 20; ++i) {
+  for (int i = 0; i < 200; ++i) {
     struct complex p = z
       .pow(7)
       .sub(z.pow(5))
       .add(z.pow(3))
       .sub(z.pow(2))
       .add(z)
-      .sub((struct complex){ 1.0, 0.0 });
+      .sub(re(1.0));
 
     struct complex pp = z
-      .pow(6).mul((struct complex){ 7.0, 0.0 })
-      .sub(z.pow(4).mul((struct complex){ 5.0, 0.0 }))
-      .add(z.pow(2).mul((struct complex){ 3.0, 0.0 }))
-      .sub(z.mul((struct complex){ 2.0, 0.0 }))
-      .add((struct complex){ 1.0, 0.0 });
+      .pow(6).mul(re(7.0))
+      .sub(z.pow(4).mul(re(5.0)))
+      .add(z.pow(2).mul(re(3.0)))
+      .sub(z.mul(re(2.0)))
+      .add(re(1.0));
 
-    struct complex dz = z.sub(p.div(pp).mul((struct complex){ a, 0.0 }));
+    struct complex dz = z.sub(p.div(pp).mul(re(a)));
 
     for (int r = 0; r < sizeof(roots) / sizeof(roots[0]); ++r) {
       if (dz.sub(roots[r]).abssq() < 0.05) {
@@ -129,7 +131,6 @@ struct result calculate(double real, double imag, double a) {
 }
 
 void render(int width, int height, double a, uint8_t* buf) {
-  uint8_t color[3];
   struct result result;
 
   for (int x = 0; x < width; ++x) {
@@ -137,16 +138,15 @@ void render(int width, int height, double a, uint8_t* buf) {
       double zi = ((double)y - (double)width * 0.5) * 0.1;
       double zr = ((double)x - (double)height * 0.5) * 0.1;
 
-      result = calculate(zi, zr, a);
+      result = calculate((struct complex){ zi, zr }, a);
 
       int idx = (y * width + x) * 4;
+      uint8_t* color = buf + idx;
+
+      // Manually set alpha
+      buf[idx + 3] = 255;
 
       hslToRgb(0.3888f * (float)result.root, 0.5f, (float)result.iteration * 0.1f, color);
-
-      buf[idx + 0] = color[0];
-      buf[idx + 1] = color[1];
-      buf[idx + 2] = color[2];
-      buf[idx + 3] = 255;
     }
   }
 }
