@@ -3,8 +3,8 @@
 Module = {};
 Module.noInitialRun = true;
 Module.onRuntimeInitialized = function () {
-  const WIDTH = 400;
-  const HEIGHT = 400;
+  const WIDTH = 600;
+  const HEIGHT = 600;
 
   const canvas = document.querySelector('canvas');
   canvas.setAttribute('height', HEIGHT);
@@ -26,12 +26,7 @@ Module.onRuntimeInitialized = function () {
     context.putImageData(imageData, 0, 0);
   }
 
-  (function loop(a = 0) {
-    console.time('render');
-    render(a);
-    console.timeEnd('render');
-    setTimeout(loop.bind(null, a + 0.1), 1);
-  })();
+  render(1);
 }
 </script>
 <script src="output.js"></script>
