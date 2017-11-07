@@ -15,7 +15,7 @@ Module.onRuntimeInitialized = function () {
   const imageData = context.getImageData(0, 0, WIDTH, HEIGHT);
 
   const nativeRender = Module.cwrap('render', 'void', ['number', 'number', 'number', 'number']);
-  const size = imageData.data.byteLenght;
+  const size = imageData.data.byteLength;
   const pointer = Module._malloc(size);
   const heap = new Uint8Array(Module.HEAPU8.buffer, pointer, size);
 
